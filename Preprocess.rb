@@ -5,6 +5,7 @@ class Preprocess
     @number_of_examples = @data.size
 
     find_discrete_continuous_variables()
+    convert_continuous_var()
     create_discrete_mapping()
     encode_discrete_var()
     shuffle()
@@ -13,15 +14,24 @@ class Preprocess
   def find_discrete_continuous_variables
     # :d_var, :c_var represents discrete and continuous variable
 
-    @data_var_type = [];
+    @var_type = [];
     @data[0].each do |var|
-      @data_var_type << (nan?(var) ? :d_var : :c_var)
+      @var_type << (nan?(var) ? :d_var : :c_var)
+    end
+  end
+
+  def convert_continuous_var
+    @var_type.each_with_index do |type,index|
+      next if type == :d_var
+      @data.each do |item|
+        item[index] = item[index].to_f
+      end
     end
   end
 
   def create_discrete_mapping
     @mapping = []
-    @data_var_type.each_with_index do |item,i|
+    @var_type.each_with_index do |item,i|
       if item == :c_var
         @mapping << nil
       else
@@ -36,7 +46,7 @@ class Preprocess
   end
 
   def encode_discrete_var
-    @data_var_type.each_with_index do |item,i|
+    @var_type.each_with_index do |item,i|
       next if item != :d_var
       (0..@data.size).each do |index|
         @data[index][i] = @mapping[i][@data[index][i]]
@@ -49,7 +59,7 @@ class Preprocess
   end
 
   def get_results
-    return [@data, @data_var_type, @mapping]
+    return [@data, @var_type, @mapping]
   end
 
   # HELPERS
@@ -67,8 +77,3 @@ class Preprocess
   end
 
 end
-
-require 'csv'
-file_path = './Datasets/iris/iris.data.txt'
-a = Preprocess.new(file_path)
-puts a.get_results.to_s
