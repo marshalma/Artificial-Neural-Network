@@ -21,7 +21,7 @@ def ann_learn(examples, target, examples_val, target_val, units, epoch_max = 200
   max_accuracy_weights = nil
   (0..epoch_max-1).each do |iter|
     # stop criteria
-    break if 2 * max_accuracy_iter < iter && iter.to_f > 0.1 * epoch_max.to_f
+    break if 3 * max_accuracy_iter < iter && iter.to_f > 0.2 * epoch_max.to_f
 
     # puts weights.to_s
     examples.each_with_index do |example, index|
