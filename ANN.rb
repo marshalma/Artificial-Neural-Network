@@ -18,9 +18,11 @@ def ann_learn(examples, target, examples_val, target_val, units, epoch_max = 200
   # main loop
   max_accuracy = 0
   max_accuracy_iter = 0
+  current_iter = 0
   max_accuracy_weights = nil
   (0..epoch_max-1).each do |iter|
     # stop criteria
+    current_iter = iter
     break if 3 * max_accuracy_iter < iter && iter.to_f > 0.2 * epoch_max.to_f
 
     # puts weights.to_s
@@ -62,7 +64,7 @@ def ann_learn(examples, target, examples_val, target_val, units, epoch_max = 200
     puts "current accuracy = #{accuracy_val}, highest accuracy epoch = #{max_accuracy_iter}, highest accuracy = #{max_accuracy}"
 
   end
-  [max_accuracy_weights, mapping]
+  [max_accuracy_weights, mapping, current_iter]
 end
 
 def ann_evaluate(examples, target, weights, mapping)
@@ -179,6 +181,20 @@ def mse_calc(predictions, targets)
     result += 0.5 * subresult
   end
   result /= predictions.size.to_f
+end
+
+# statistical helper functions
+def mean(array)
+  array.inject(0) { |sum, x| sum += x } / array.size.to_f
+end
+def mean_and_standard_deviation(array)
+  m = mean(array)
+  variance = array.inject(0) { |variance, x| variance += (x - m) ** 2 }
+  return m, Math.sqrt(variance/(array.size-1))
+end
+def confidence_interval(array)
+  mean, dev = mean_and_standard_deviation(array)
+  [mean - 2.262 * dev / Math.sqrt(10), mean + 2.262 * dev / Math.sqrt(10)]
 end
 
 # SIMPLE TESTS (be advised that some of the methods are obsolete)

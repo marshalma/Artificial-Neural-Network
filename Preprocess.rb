@@ -112,7 +112,7 @@ class Preprocess
   end
 
   def self.divide_dataset(data, i, num_of_fold)
-    num_in_one_fold = data.size / 10
+    num_in_one_fold = data.size / num_of_fold
 
     training_set = []
     validation_set = []

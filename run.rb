@@ -4,11 +4,10 @@ require 'optparse'
 # require 'pry'
 require './Preprocess.rb'
 require './ANN.rb'
-require './Parser.rb'
 
 # default parameters
 file_path = './Datasets/iris/iris.data.txt' # mandatory
-perceptron_units = [] # mandatory
+perceptron_units = [] # optional
 num_of_fold = 10 # optional
 epoch_max = 2000 # optional
 learning_rate = 0.1 # optional
@@ -23,17 +22,17 @@ OptionParser.new do |parser|
     p_units.each_with_index {|val, index| p_units[index] = p_units[index].to_i}
     perceptron_units = p_units
   end
-  parser.on("-fold num_of_fold", Numeric, "[OPTIONAL] NUMBER OF FOLDS IN CROSS VALIDATION") do |n_fold|
-    num_of_fold = n_fold
+  # parser.on("-fold num_of_fold", "[OPTIONAL] NUMBER OF FOLDS IN CROSS VALIDATION") do |n_fold|
+  #   num_of_fold = n_fold.to_i
+  # end
+  parser.on("-epoch num_of_epoch", "[OPTIONAL] NUMBER OF MAXIMUM EPOCH") do |iter_max|
+    epoch_max = iter_max.to_i
   end
-  parser.on("-epoch num_of_epoch", Numeric, "[OPTIONAL] NUMBER OF MAXIMUM EPOCH") do |iter_max|
-    epoch_max = iter_max
+  parser.on("-l learning_rate", "[OPTIONAL] LEARNING RATE") do |l_rate|
+    learning_rate = l_rate.to_f
   end
-  parser.on("-l learning_rate", Float, "[OPTIONAL] LEARNING RATE") do |l_rate|
-    learning_rate = l_rate
-  end
-  parser.on("-m momentum_rate", Float, "[OPTIONAL] MOMENTUM RATE, 0 IF NO MOMENTUM IS WANTED") do |m_rate|
-    momentum_rate = m_rate
+  parser.on("-m momentum_rate", "[OPTIONAL] MOMENTUM RATE, 0 IF NO MOMENTUM IS WANTED") do |m_rate|
+    momentum_rate = m_rate.to_f
   end
 end.parse!
 
@@ -45,6 +44,7 @@ perceptron_units << mapping.last.keys.size
 
 # 10-fold-cross-validation
 accuracies = []
+iterations = []
 (0..num_of_fold-1).each do |i|
 
   puts "====================================================================================="
@@ -62,8 +62,9 @@ accuracies = []
   attr_test, target_test = Preprocess.separate_attr_and_target(test_set)
 
   # training and evaluation
-  weights, mapping = ann_learn(attr_train, target_train, attr_validation, target_validation, perceptron_units, epoch_max, learning_rate, momentum_rate)
+  weights, mapping, iteration = ann_learn(attr_train, target_train, attr_validation, target_validation, perceptron_units, epoch_max, learning_rate, momentum_rate)
   accuracies << ann_evaluate(attr_test, target_test, weights, mapping)
+  iterations << iteration
 
   # reporting accuracy on each fold
   puts "--------------------------------------------------------------------------------------"
@@ -71,4 +72,10 @@ accuracies = []
   print "=====================================================================================\n\n\n"
 end
 
+puts "=====================================Result=========================================="
+puts "Number of units of each layer = #{perceptron_units}"
+puts "Number of iterations to stop = #{iterations}"
+puts "LEARNING_RATE = #{learning_rate}, MOMENTUM_RATE = #{momentum_rate}"
 puts "TEN-FOLD ACCURACIES = #{accuracies}"
+puts "MEAN ACCURACIES = #{mean(accuracies)}"
+puts "CONVIDENCE INTERVAL (0.95) = #{confidence_interval(accuracies)}"
